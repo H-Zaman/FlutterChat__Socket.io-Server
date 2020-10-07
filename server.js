@@ -179,6 +179,6 @@ function printNumOnlineUsers() {
 	print('Online Users: ' + userMap.size);
 }
 
-app.listen(listen_port,()=>{
-    console.log('SERVER ONLINE @HEROKU')
-})
+server.listen(listen_port,() =>{
+	print('Server running '+listen_port)
+});
