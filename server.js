@@ -180,5 +180,5 @@ function printNumOnlineUsers() {
 }
 
 app.listen(listen_port,()=>{
-    console.log('SERVER ONLINE @HEROKU':+listen_port)
+    console.log('SERVER ONLINE @HEROKU')
 })
