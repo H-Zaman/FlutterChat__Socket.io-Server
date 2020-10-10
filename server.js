@@ -9,15 +9,17 @@ let ON_CONNECTION = 'connection';
 let ON_DISCONNECT = 'disconnect';
 
 // Main Events
-let EVENT_IS_USER_ONLINE = 'check_online';
-let EVENT_SINGLE_CHAT_MESSAGE = 'single_chat_message';
+let EVENT_IS_USER_ONLINE = 'check_online'
+let EVENT_ONLINE_USER_LIST = 'online_user_list'
+let EVENT_SINGLE_CHAT_MESSAGE = 'single_chat_message'
 
 // Sub Events
 let SUB_EVENT_RECEIVE_MESSAGE = 'receive_message';
 let SUB_EVENT_MESSAGE_FROM_SERVER = 'message_from_server';
 let SUB_EVENT_IS_USER_CONNECTED = 'is_user_connected';
 
-let listen_port = process.env.PORT;
+// let listen_port = process.env.PORT;
+let listen_port = 9000;
 
 // Status
 let STATUS_MESSAGE_NOT_SENT = 10001;
@@ -45,41 +47,30 @@ function checkOnline(socket) {
 }
 
 function onUserDisconnect(socket) {
-	onDisconnect(socket);
+	onDisconnect(socket)
 }
 
 // This function is fired when each user connects to socket
 function onEachUserConnection(socket) {
-	print('---------------------------------------');
-	print('Connected => Socket ID ' + socket.id + ', User: ' + JSON.stringify(socket.handshake.query));
-
+	print('Connected => Socket' + socket.id)
 	var from_user_id = socket.handshake.query.from;
 	// Add to Map
 	let userMapVal = { socket_id: socket.id };
 	addUserToMap(from_user_id, userMapVal);
-	print(userMap);
+	sendBackOnlineUsers();
 	printNumOnlineUsers();
-
 	onMessage(socket);
 	checkOnline(socket);
 	onUserDisconnect(socket);
 }
 
 function singleChatHandler(socket, chat_message) {
-	//
-	print('Message: ' + stringifyJson(chat_message));
-	// Get the 'to' User...
-	let to_user_id = chat_message.to;
-	let from_user_id = chat_message.from;
-	print(from_user_id + '=>' + to_user_id);
-
+	let to_user_id = chat_message.to
+	let from_user_id = chat_message.from
 	let to_user_socket_id = getSocketIDfromMapForthisUser(to_user_id);
 	let userOnline = userFoundOnMap(to_user_id);
 
-	print('to_user_socket_id: ' + to_user_socket_id + ', userOnline: ' + userOnline);
-
 	if (!userOnline) {
-		print('To Chat User not connected.');
 		chat_message.message_sent_status = STATUS_MESSAGE_NOT_SENT;
 		chat_message.to_user_online_status = false;
 		sendBackToClient(socket, SUB_EVENT_MESSAGE_FROM_SERVER, chat_message);
@@ -97,7 +88,7 @@ function singleChatHandler(socket, chat_message) {
 	chat_message.to_user_online_status = false;
 	sendBackToClient(socket, SUB_EVENT_MESSAGE_FROM_SERVER, chat_message);
 
-	print('Message Sent!!');
+	print('Message Sent!! '+from_user_id+' to '+to_user_id+' Message: '+chat_message.message);
 }
 
 function checkOnlineHandler(socket, chat_user_data) {
@@ -120,6 +111,7 @@ function onDisconnect(socket) {
 		removeUserWithSocketIdFromMap(socket.id);
 		socket.removeAllListeners('message');
 		socket.removeAllListeners('disconnect');
+		sendBackOnlineUsers()
 	});
 }
 
@@ -128,7 +120,6 @@ function addUserToMap(key_user_id, val) {
 }
 
 function removeUserWithSocketIdFromMap(socket_id) {
-	print('Deleting user with socket id: ' + socket_id);
 	let toDeleteUser;
 	for (let key of userMap) {
 		// index 1, returns the value for each map key
@@ -137,11 +128,9 @@ function removeUserWithSocketIdFromMap(socket_id) {
 			toDeleteUser = key[0];
 		}
 	}
-	print('Deleting User: ' + toDeleteUser);
 	if (undefined != toDeleteUser) {
 		userMap.delete(toDeleteUser);
 	}
-	print(userMap);
 	printNumOnlineUsers();
 }
 
@@ -166,7 +155,22 @@ function userFoundOnMap(to_user_id) {
 	return to_user_socket_id != undefined;
 }
 
-// Always stringify to create proper json before sending.
+
+
+
+
+
+
+function sendBackOnlineUsers(){
+	// const obj = Object.fromEntries(userMap);
+	let list = []
+	userMap.forEach((value, key) =>{
+		list.push(key)
+	})
+	io.emit(EVENT_ONLINE_USER_LIST, list)
+}
+
+
 function stringifyJson(data) {
 	return JSON.stringify(data);
 }
