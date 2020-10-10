@@ -18,8 +18,9 @@ let SUB_EVENT_RECEIVE_MESSAGE = 'receive_message';
 let SUB_EVENT_MESSAGE_FROM_SERVER = 'message_from_server';
 let SUB_EVENT_IS_USER_CONNECTED = 'is_user_connected';
 
-// let listen_port = process.env.PORT;
-let listen_port = 9000;
+let listen_port = process.env.PORT
+//always remember to change this port
+// let listen_port = 9000;
 
 // Status
 let STATUS_MESSAGE_NOT_SENT = 10001;
